@@ -24,7 +24,7 @@ class Category(BaseModel):
     id: int
     name: str
     description: str
-    type: str  # vocales, numeros, operaciones, algebraicas
+    type: str  # numeros, operaciones, algebraicas
     user_id: int
     sample_count: int
     created_at: str

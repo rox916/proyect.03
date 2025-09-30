@@ -9,7 +9,6 @@ import uvicorn
 
 from config import settings
 from routes.routes_generales import router as general_router
-from routes.vocales.routes_vocales import router as vocales_router
 from routes.abecedario.routes_abecedario import router as abecedario_router
 from routes.numeros.routes_numeros import router as numeros_router
 from routes.operaciones.routes_operaciones import router as operaciones_router
@@ -33,7 +32,6 @@ app.add_middleware(
 
 # Incluir routers
 app.include_router(general_router, prefix="/api/v1", tags=["General"])
-app.include_router(vocales_router, prefix="/api/v1", tags=["Vocales"])
 app.include_router(abecedario_router, prefix="/api/v1", tags=["Abecedario"])  # ✅ ya incluye /train
 app.include_router(numeros_router, prefix="/api/v1", tags=["Números"])
 app.include_router(operaciones_router, prefix="/api/v1", tags=["Operaciones"])
@@ -49,7 +47,6 @@ async def root():
         "endpoints": {
             "health": "/health",
             "ai_agent": "/api/v1/ai-agent",
-            "vocales": "/api/v1/vocales",
             "abecedario": "/api/v1/abecedario",   # 👈 aquí estarán también /train, /stats, etc.
             "numeros": "/api/v1/numeros",
             "operaciones": "/api/v1/operaciones",

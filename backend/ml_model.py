@@ -42,7 +42,7 @@ class SignRecognitionModel:
     def load_training_data(self) -> Tuple[np.ndarray, np.ndarray]:
         """Cargar datos de entrenamiento desde archivos JSON"""
         X = []  # Features (landmarks)
-        y = []  # Labels (números/vocales/etc)
+        y = []  # Labels (números/operaciones/etc)
         
         data_dir = f"datos/{self.category}"
         
@@ -227,7 +227,6 @@ class SignRecognitionModel:
 # Instancias globales para cada categoría
 models = {
     "numeros": SignRecognitionModel("numeros"),
-    "vocales": SignRecognitionModel("vocales"),
     "operaciones": SignRecognitionModel("operaciones"),
     "abecedario": SignRecognitionModel("abecedario")
 }

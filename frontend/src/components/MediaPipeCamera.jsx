@@ -1,6 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react'
-import { Hands } from '@mediapipe/hands'
 import './MediaPipeCamera.css'
+
+// Importación dinámica de MediaPipe para mejor compatibilidad
+let Hands = null
 
 const MediaPipeCamera = ({ onLandmarks, onHandDetected, dualHandMode = false, onDualHandDetected }) => {
   const videoRef = useRef(null)
@@ -16,6 +18,59 @@ const MediaPipeCamera = ({ onLandmarks, onHandDetected, dualHandMode = false, on
     const initializeMediaPipe = async () => {
       try {
         console.log('🚀 Iniciando MediaPipe Camera...')
+        
+        // Cargar MediaPipe Hands dinámicamente con múltiples intentos
+        if (!Hands) {
+          try {
+            // Intentar importación estándar
+            const mediapipeModule = await import('@mediapipe/hands')
+            Hands = mediapipeModule.Hands || mediapipeModule.default?.Hands
+            
+            if (!Hands) {
+              // Intentar importación alternativa
+              const altModule = await import('@mediapipe/hands/hands.js')
+              Hands = altModule.Hands || altModule.default?.Hands
+            }
+            
+            if (!Hands) {
+              throw new Error('Hands no encontrado en el módulo')
+            }
+            
+            console.log('✅ MediaPipe Hands cargado correctamente')
+          } catch (importError) {
+            console.error('❌ Error importando MediaPipe Hands:', importError)
+            
+            // Intentar cargar desde CDN como fallback
+            try {
+              console.log('🔄 Intentando cargar MediaPipe desde CDN...')
+              const script = document.createElement('script')
+              script.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.js'
+              script.type = 'module'
+              document.head.appendChild(script)
+              
+              await new Promise((resolve, reject) => {
+                script.onload = resolve
+                script.onerror = reject
+                setTimeout(() => reject(new Error('Timeout cargando desde CDN')), 10000)
+              })
+              
+              // Verificar si Hands está disponible globalmente
+              if (window.Hands) {
+                Hands = window.Hands
+                console.log('✅ MediaPipe Hands cargado desde CDN')
+              } else {
+                throw new Error('Hands no disponible después de cargar desde CDN')
+              }
+            } catch (cdnError) {
+              console.error('❌ Error cargando desde CDN:', cdnError)
+              throw new Error('No se pudo cargar MediaPipe Hands desde ninguna fuente. Verifica la conexión a internet.')
+            }
+          }
+        }
+        
+        if (!Hands) {
+          throw new Error('MediaPipe Hands no está disponible')
+        }
         
         // Obtener acceso a la cámara con mejor configuración
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -43,10 +98,17 @@ const MediaPipeCamera = ({ onLandmarks, onHandDetected, dualHandMode = false, on
 
         if (!isMounted) return
 
-        // Configurar MediaPipe Hands
-        const hands = new Hands({
-          locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
-        })
+        // Configurar MediaPipe Hands con manejo de errores
+        let hands
+        try {
+          hands = new Hands({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+          })
+          console.log('✅ Instancia de Hands creada correctamente')
+        } catch (handsError) {
+          console.error('❌ Error creando instancia de Hands:', handsError)
+          throw new Error(`Error creando MediaPipe Hands: ${handsError.message}`)
+        }
 
         hands.setOptions({
           maxNumHands: dualHandMode ? 2 : 1,
@@ -270,7 +332,12 @@ const MediaPipeCamera = ({ onLandmarks, onHandDetected, dualHandMode = false, on
         {error && (
           <div className="mediapipe-status-item mediapipe-status-error">
             <div>Error: {error}</div>
-            <div className="mediapipe-error-message">Revisa permisos de cámara</div>
+            <div className="mediapipe-error-message">
+              {error.includes('MediaPipe') ? 
+                'Error cargando MediaPipe. Intenta recargar la página.' : 
+                'Revisa permisos de cámara y conexión a internet'
+              }
+            </div>
           </div>
         )}
       </div>
