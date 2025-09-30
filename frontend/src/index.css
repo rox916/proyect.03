@@ -89,7 +89,49 @@ body {
   margin-right: 0;
   flex-wrap: wrap;
 }
+/* Aura azul eléctrico mínima solo en los bordes */
+.voz-activa::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
 
+  /* Gradiente que solo afecta los bordes */
+  background: radial-gradient(
+    circle,
+    rgba(0, 200, 255, 0) 90%,    /* Centro transparente */
+    rgba(0, 200, 255, 0.15) 95%, /* Inicio halo borde */
+    rgba(0, 200, 255, 0.25) 100% /* Halo final borde */
+  );
+
+  filter: blur(20px);             /* Difuminado muy sutil */
+  opacity: 0;                     /* Inicialmente invisible */
+  transition: opacity 0.3s ease-in-out;
+
+  /* Pulso muy suave */
+  animation: aura-breath 2.5s ease-in-out infinite alternate;
+}
+
+/* Cuando se activa la clase */
+body.voz-activa::before {
+  opacity: 1;
+}
+
+/* Pulso ligero */
+@keyframes aura-breath {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.02);
+    opacity: 1;
+  }
+}
 
 
 
